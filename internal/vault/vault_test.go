@@ -119,3 +119,20 @@ func TestSaveCreatesFileWithRestrictedPermissions(t *testing.T) {
 		t.Errorf("expected file permissions 0600, got %o", info.Mode().Perm())
 	}
 }
+
+func TestSetOverwritesExistingKey(t *testing.T) {
+	v := vault.New()
+	v.Set("FOO", "original")
+	v.Set("FOO", "updated")
+
+	val, ok := v.Get("FOO")
+	if !ok {
+		t.Fatal("expected key FOO to exist")
+	}
+	if val != "updated" {
+		t.Errorf("expected 'updated', got '%s'", val)
+	}
+	if len(v.Env) != 1 {
+		t.Errorf("expected 1 entry, got %d", len(v.Env))
+	}
+}
