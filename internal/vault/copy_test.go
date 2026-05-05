@@ -102,3 +102,23 @@ func TestCopyNilDestinationReturnsError(t *testing.T) {
 		t.Error("expected error for nil destination")
 	}
 }
+
+func TestCopyResultCopiedKeysMatchInput(t *testing.T) {
+	src := makeCopyVault(t, map[string]string{"FOO": "bar", "BAZ": "qux"})
+	dst := New()
+
+	res, err := CopyKeys(src, dst, []string{"FOO", "BAZ"}, CopyOptions{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	copied := make(map[string]bool, len(res.Copied))
+	for _, k := range res.Copied {
+		copied[k] = true
+	}
+	for _, k := range []string{"FOO", "BAZ"} {
+		if !copied[k] {
+			t.Errorf("expected key %q in res.Copied, but it was absent", k)
+		}
+	}
+}
