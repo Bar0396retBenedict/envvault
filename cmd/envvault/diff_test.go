@@ -8,6 +8,8 @@ import (
 	"github.com/user/envvault/internal/vault"
 )
 
+// writeTempVault creates a temporary vault file with the given entries and passphrase,
+// returning the path to the created file.
 func writeTempVault(t *testing.T, dir, name, passphrase string, entries map[string]string) string {
 	t.Helper()
 	v := vault.New()
@@ -81,5 +83,20 @@ func TestRunDiffBadVaultFile(t *testing.T) {
 
 	if err := runDiff([]string{badPath, goodPath}); err == nil {
 		t.Fatal("expected error for bad vault file")
+	}
+}
+
+func TestRunDiffSecondBadVaultFile(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("ENVVAULT_PASSPHRASE", "secret")
+
+	goodPath := writeTempVault(t, dir, "good.vault", "secret", map[string]string{"X": "1"})
+	badPath := filepath.Join(dir, "bad.vault")
+	if err := os.WriteFile(badPath, []byte("not-valid"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runDiff([]string{goodPath, badPath}); err == nil {
+		t.Fatal("expected error for bad second vault file")
 	}
 }
